@@ -8,63 +8,49 @@ def eval_function(eval_M, obs_label, sim_label, pho_label, OEs, weight_token):
     fil_pho_list='Data/pho_list.txt'
     pho_list=list(np.genfromtxt(fil_pho_list, delimiter=','))
     threshold=0.5
-    correctly_ident_simulated=0
-    correctly_ident_observed=0
-    incorrectly_ident_simulated=0
-    incorrectly_ident_observed=0
-    num_of_objects=eval_M.shape[0]
-    num_of_PHOs=0
-    correctly_ident_PHOs=0
+    num_objects=eval_M.shape[0]
+    num_haz_sim=0
+    num_haz_obs=0
+    num_haz_pho=0
     simulated_ratings=[]
     observed_ratings=[]
     PHO_ratings=[]
-    for i in range(num_of_objects):
+    topThree=[410777,101955, 29075]
+    print('')
+    for i in range(num_objects):
         hazard_rating=eval_M[i,0]
         label=eval_M[i,1]
         name=eval_M[i,2]
-        if name in pho_list:
-            num_of_PHOs+=1
         if hazard_rating>=threshold and label==sim_label:
-            correctly_ident_simulated+=1
-        elif hazard_rating<threshold and label==sim_label:
-            incorrectly_ident_simulated+=1
-        if hazard_rating<threshold and label==obs_label:
-            correctly_ident_observed+=1
+            num_haz_sim+=1
         elif hazard_rating>=threshold and label==obs_label:
-            incorrectly_ident_observed+=1
-        if hazard_rating>threshold and label==pho_label:
-            correctly_ident_PHOs+=1
+            num_haz_obs+=1
+        elif hazard_rating>=threshold and label==pho_label:
+            num_haz_pho+=1
         if label==sim_label:
             simulated_ratings.append(hazard_rating)
         elif label==obs_label:
             observed_ratings.append(hazard_rating)
         elif label==pho_label:
             PHO_ratings.append(hazard_rating)
-    print('\n\nTotal objects: %s'%(num_of_objects))
-    print('Correctly identified simulated: %s'%(correctly_ident_simulated))
-    print('Incorrectly identified simulated: %s'%(incorrectly_ident_simulated))
-    print('Correctly identified observed: %s'%(correctly_ident_observed))
-    print('Incorrectly identified observed: %s'%(incorrectly_ident_observed))
-    print('Out of the %s PHOs %s were identified'%(num_of_PHOs, correctly_ident_PHOs))
-
-    average_simulated_rating=np.mean(np.array(simulated_ratings))
-    simulated_STD=np.std(np.array(simulated_ratings))
-    average_observed_rating=np.mean(np.array(observed_ratings))
-    observed_STD=np.std(np.array(observed_ratings))
-    average_pho_rating=np.mean(np.array(PHO_ratings))
-    pho_STD=np.std(np.array(PHO_ratings))
-    print('The average rating of simulated objects is %s with a STD of %s'%(average_simulated_rating,simulated_STD))
-    print('The average rating of observed objects is %s with a STD of %s'%(average_observed_rating,observed_STD))
-    print('The average rating of PHOs is %s with a STD of %s'%(average_pho_rating,pho_STD))
+        if int(name) in topThree:
+            print('The rating for %s was %s.'%(int(name),hazard_rating))
+    num_observed=len(observed_ratings)
+    num_simulated=len(simulated_ratings)
+    num_pho=len(PHO_ratings)
+    print('\nTotal objects: %s'%(num_objects))
+    print('Out of the %s observed objects, %s were identified as hazardous (%.2f%%).'%(num_observed, num_haz_obs, float(num_haz_obs)/float(num_observed)*100.))
+    print('Out of the %s simulated objects, %s were identified as hazardous (%.2f%%).'%(num_simulated, num_haz_sim, float(num_haz_sim)/float(num_simulated)*100.))
+    print('Out of the %s PHOs, %s were identified as hazardous (%.2f%%).\n'%(num_pho, num_haz_pho, float(num_haz_pho)/float(num_pho)*100.))
 
     print('Creating hazard matrix...')
-    hazard_matrix=np.zeros((num_of_objects, 13))
+    hazard_matrix=np.zeros((num_objects, 13))
     #First column is name
     #Second column is hazard rating
     #Third column is the label
     #Fourth column through eighth are OEs means
     #ninth through thirteenth are OE STD
-    for i in range(num_of_objects):
+    for i in range(num_objects):
         hazard_rating=eval_M[i,0]
         label=eval_M[i,1]
         name=eval_M[i,2]
@@ -84,7 +70,7 @@ def eval_function(eval_M, obs_label, sim_label, pho_label, OEs, weight_token):
         OE_stds=np.std(OE_Matrix,axis=0)
         hazard_matrix[i,3:8]=OE_means
         hazard_matrix[i,8:13]=OE_stds
-        np.savetxt("NN/Hazard_Matrices/"+weight_token+".csv", hazard_matrix, delimiter=",")    
+    np.savetxt("Data/Hazard_Matrices/"+weight_token+".csv", hazard_matrix, delimiter=",")    
     print('Done!')    
 
     return hazard_matrix

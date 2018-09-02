@@ -17,9 +17,9 @@ fil_hazard_matrix='Data/Hazard_Matrices/Aug28_11.csv'
 hazard_matrix=np.genfromtxt(fil_hazard_matrix,delimiter=',')
 num_objects,_=hazard_matrix.shape
 
-observed_label=0.2
-simulated_label=0.8
-pho_label=0.6
+observed_label=0.1
+simulated_label=0.9
+pho_label=0.8
 threshold=0.0227
 Sentry_Names=[410777,101955, 29075, 648002, 654427, 99942, 645733, 709909, 608553, 834844]
 Sentry_Impact_Chance=[0.0016, 0.00037, 0.00012, 4.7E-05, 3.5E-05, 8.9E-06, 7.7E-06, 6.5E-06, 6.1E-06, 5.8E-06]

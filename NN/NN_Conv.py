@@ -6,16 +6,6 @@ import datetime
 import sys
 import time
 
-#Aug24_4
-#Aug24_short0
-#Aug24_short1
-#Aug24_short2#
-#Aug24_med0
-#Aug24_med1#
-#Aug24_long0
-#Aug24_long1
-
-
 def shuffle_in_unison(a, b):
     rng_state = np.random.get_state()
     np.random.shuffle(a)
@@ -35,13 +25,13 @@ total_OO=1e5
 total_SO=1e5
   
 filter_width=10
-output_channels=5
+output_channels=10
 stride_length=2
 keep_rate=0.8
-num_of_epochs=40
-learning_rate=0.02
+num_of_epochs=8
+learning_rate=0.05
 batch_size=10
-network_layout=[250, 0, 60, 30, 15, 7, 1]
+network_layout=[250, 0, 120, 60, 30, 15, 1]
 num_strides=(network_layout[0]/5)/stride_length
 network_layout[1]=num_strides*output_channels
 
@@ -67,10 +57,16 @@ weights_token=str(sys.argv[2])
 
 #Loads the three datasets
 print('Loading the data this could take a minute...')
-OO=np.load('Data/oo_matrix.npy')
-SO=np.load('Data/so_matrix.npy')
-PHO=np.load('Data/pho_matrix.npy')
+OO=np.load('Data/oe_matrices/oo_matrixN.npy')
+SO=np.load('Data/oe_matrices/so_matrix_OldSept.npy')
+PHO=np.load('Data/oe_matrices/pho_matrixN.npy')
 print('Done!')
+
+#Makes a minor data correction
+num_PHO,_=PHO.shape
+for i in range(num_PHO):
+    if int(PHO[i,-1])==101955:
+        print(PHO[i,:5])
 
 #Throws some of the data out (randomly)
 np.random.shuffle(OO)
@@ -133,7 +129,7 @@ conv_test = funcs.conv_1D(x, weights, biases, num_strides, stride_length, num_te
 
 #Defines the cross entropy function and its optimizer
 cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=y_,logits=conv_train)
-train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
+train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
 
 #Starts the interactive session
 print('\nStarting session...')
@@ -183,7 +179,7 @@ for epoch in range(num_of_epochs):
         print('The average loss, per training vector, is %s for the %s epoch'%(avg_loss, epoch))
         if avg_loss/last_loss>1.0001:
             learning_rate=learning_rate*0.8
-            train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
+            train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
             learning_rate_counter=0
             epoch_counter=0
             print('Learning rate decreased to %s'%(learning_rate))
