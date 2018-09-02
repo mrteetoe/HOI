@@ -6,9 +6,9 @@ import math
 #For setting print options
 np.set_printoptions(linewidth=400, threshold=int(1e4), edgeitems=6)
 
-dir_inputD='MOOOO!'
-dir_simulated='Data/simulated_NEW/'
-fil_simulated_matrix='Data/so_matrix_NewSept.npy'
+dir_inputD='Data/simulated/simulated_cart/new/'
+dir_simulated='Data/simulated/simulated_oe/new/'
+fil_simulated_matrix='Data/oe_matrices/so_matrix_NewSept.npy'
 
 sparsity=50 #How many rows are skipped
 num_rows=int(2500/sparsity)
@@ -63,28 +63,27 @@ print('%s objects were not found'%(num_unfoundObjects))
 
 #Loads simulated and saves to list
 #dir_simulated='Data/simulated_new/'
-#num_epochs=20
-num_objects=20000
 so_list=[]
 unfound_so=0
 found_so=0
 zero_matrices=0
 last_num=0
 nan_found=0
-for epoch_num in range(1,num_epochs+1):
+for epoch_num in range(200,20000):
     for object_num in range(1,num_objects+1):
         try:
             fil_name='object_'+str(object_num)+'_it'+str(epoch_num*1000)+'.npy'
             so=np.load(dir_simulated+fil_name)
-            so=np.flip(so) #To take into account the time reversal
+            so=np.flip(so[1:]) #To take into account the time reversal
+            num_origRows,_=so.shape
             if so[-1,0]==0 and so[-1,1]==0:
                 zero_matrices+=1
-            elif np.isnan(np.sum(so[1:].flatten()))==1:
+            elif np.isnan(np.sum(so.flatten()))==1:
                 nan_found+=1  
             else:
                 so_epoch=epoch_num
                 so_vector=np.zeros(num_origRows*5+1)
-                so_vector[:-1]=so[1:].flatten()
+                so_vector[:-1]=so.flatten()
                 so_vector[-1]=so_epoch
                 so_list.append(so_vector)
                 found_so+=1

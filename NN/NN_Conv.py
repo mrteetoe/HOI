@@ -28,8 +28,8 @@ filter_width=10
 output_channels=10
 stride_length=2
 keep_rate=0.8
-num_of_epochs=8
-learning_rate=0.05
+num_of_epochs=9
+learning_rate=0.001
 batch_size=10
 network_layout=[250, 0, 120, 60, 30, 15, 1]
 num_strides=(network_layout[0]/5)/stride_length
@@ -62,11 +62,10 @@ SO=np.load('Data/oe_matrices/so_matrix_OldSept.npy')
 PHO=np.load('Data/oe_matrices/pho_matrixN.npy')
 print('Done!')
 
-#Makes a minor data correction
-num_PHO,_=PHO.shape
-for i in range(num_PHO):
-    if int(PHO[i,-1])==101955:
-        print(PHO[i,:5])
+#num_PHO,_=PHO.shape
+#for i in range(num_PHO):
+#    if int(PHO[i,-1])==101955:
+#        print(PHO[i,:5])
 
 #Throws some of the data out (randomly)
 np.random.shuffle(OO)
@@ -158,7 +157,7 @@ for epoch in range(num_of_epochs):
     funcs.shuffle_in_unison(train_set, train_labels)
     total_loss=0
     total_entries=0
-    train_step = tf.train.GradientDescentOptimizer(learning_rate).minimize(cross_entropy)
+    #train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
     for i in range(num_training_steps): 
         _, loss_val = sess.run([train_step, cross_entropy], feed_dict={x:train_set[i*batch_size:(i+1)*batch_size,:-1], y_:train_labels[i*batch_size:(i+1)*batch_size], keep_prob:keep_rate})
         if np.isnan(np.sum(loss_val))*1 == 0:
@@ -177,12 +176,12 @@ for epoch in range(num_of_epochs):
         avg_loss=total_loss/total_entries
 
         print('The average loss, per training vector, is %s for the %s epoch'%(avg_loss, epoch))
-        if avg_loss/last_loss>1.0001:
-            learning_rate=learning_rate*0.8
-            train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
-            learning_rate_counter=0
-            epoch_counter=0
-            print('Learning rate decreased to %s'%(learning_rate))
+#        if avg_loss/last_loss>1.0001:
+#            learning_rate=learning_rate*0.5
+#            train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
+#            learning_rate_counter=0
+#            epoch_counter=0
+#            print('Learning rate decreased to %s'%(learning_rate))
 #    wait=10
 #    guesses, answers=sess.run(variables, feed_dict={x:test_set[:,:-1], y_:test_labels, keep_prob:1.0})
 #    print('Waiting %s seconds...'%(wait))

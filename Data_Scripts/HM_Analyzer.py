@@ -13,14 +13,15 @@ np.set_printoptions(linewidth=400, threshold=int(1e4), edgeitems=6)
 
 #Aug28_3 best so far
 #Aug28_7 best so far
-fil_hazard_matrix='Data/Hazard_Matrices/Aug28_11.csv'
+#Sept2_0 is good
+fil_hazard_matrix='Data/Hazard_Matrices/Sept2_0.csv'
 hazard_matrix=np.genfromtxt(fil_hazard_matrix,delimiter=',')
 num_objects,_=hazard_matrix.shape
 
 observed_label=0.1
 simulated_label=0.9
 pho_label=0.8
-threshold=0.0227
+threshold=0.99
 Sentry_Names=[410777,101955, 29075, 648002, 654427, 99942, 645733, 709909, 608553, 834844]
 Sentry_Impact_Chance=[0.0016, 0.00037, 0.00012, 4.7E-05, 3.5E-05, 8.9E-06, 7.7E-06, 6.5E-06, 6.1E-06, 5.8E-06]
 
@@ -149,118 +150,119 @@ print('The STD OE of PHO objects is %s'%(pho_OE_std))
 #plt.xlim([0,200])
 #plt.show()
 
-##Divides the simulated objects into bins according to TuC
-#num_bins=9
-#A_Array=np.zeros(num_bins); E_Array=np.zeros(num_bins); IN_Array=np.zeros(num_bins)
-#N_Array=np.zeros(num_bins); ANGMOM_Array=np.zeros(num_bins); Counter=np.zeros(num_bins)
-#min_epoch=200
-#max_epoch=20000
-#divides=np.linspace(min_epoch,max_epoch,num_bins+1)
-#for i in range(len(divides)-1):
-#    for j in range(num_simulated):
-#        #print(simulated_set[j,0])
-#        if simulated_set[j,0]>=divides[i] and simulated_set[j,0]<divides[i+1]:
-#            A_Array[i]+=float(simulated_set[j,3])
-#            E_Array[i]+=float(simulated_set[j,4])
-#            IN_Array[i]+=float(simulated_set[j,5])
-#            N_Array[i]+=float(simulated_set[j,6])
-#            ANGMOM_Array[i]+=float(simulated_set[j,7])
-#            Counter[i]+=1.
+#Divides the simulated objects into bins according to TuC
+num_bins=9
+A_Array=np.zeros(num_bins); E_Array=np.zeros(num_bins); IN_Array=np.zeros(num_bins)
+N_Array=np.zeros(num_bins); ANGMOM_Array=np.zeros(num_bins); Counter=np.zeros(num_bins)
+min_epoch=200
+max_epoch=20000
+divides=np.linspace(min_epoch,max_epoch,num_bins+1)
+for i in range(len(divides)-1):
+    for j in range(num_simulated):
+        #print(simulated_set[j,0])
+        if simulated_set[j,0]>=divides[i] and simulated_set[j,0]<divides[i+1]:
+            A_Array[i]+=float(simulated_set[j,3])
+            E_Array[i]+=float(simulated_set[j,4])
+            IN_Array[i]+=float(simulated_set[j,5])
+            N_Array[i]+=float(simulated_set[j,6])
+            ANGMOM_Array[i]+=float(simulated_set[j,7])
+            Counter[i]+=1.
 
-##Creates x_axis
-#x_axis=np.zeros(num_bins)
-#for i in range(num_bins):
-#    x_axis[i]=(divides[i]+divides[i+1])/2.
-#num_fit_points=1000
-#x_fit=np.linspace(min_epoch,max_epoch,num_fit_points)
-#plt.figure(1)
- 
-#Mean_As=[]
-#for i in range(num_bins):
-#    if A_Array[i]>0:
-#        Mean_A=A_Array[i]/Counter[i]
-#        Mean_As.append(Mean_A)
-#def A_function(x, a, b):
-#    return a*np.sqrt(x)+b
-#plt.subplot(221)
-#ax = plt.gca()
-#popt_A, pcov_A=curve_fit(A_function, x_axis, Mean_As)
-#sqrt='$\sqrt{x}$'
-#a="{:.1E}".format(Decimal(popt_A[0]))
-#b="{:.1E}".format(Decimal(popt_A[1]))
-#equation=a+sqrt+'+'+b
-#plt.text(0.15,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
-#plt.plot(x_fit, A_function(x_fit,*popt_A), color='b')
-#plt.plot(x_axis,Mean_As,'ro')
-#plt.xlabel('Time until Collision (years)')
-#plt.ylabel('Semi-Major Axis (AU)')
-#plt.title('A Vs. TuC')
+#Creates x_axis
+x_axis=np.zeros(num_bins)
+for i in range(num_bins):
+    x_axis[i]=(divides[i]+divides[i+1])/2.
+num_fit_points=1000
+x_fit=np.linspace(min_epoch,max_epoch,num_fit_points)
+plt.figure(1)
 
-#Mean_Es=[]
-#for i in range(num_bins):
-#    if E_Array[i]>0:
-#        Mean_E=E_Array[i]/Counter[i]
-#        Mean_Es.append(Mean_E)
-#def E_function(x, a, b):
-#    return a*np.sqrt(x)+b
-#plt.subplot(222)
-#ax = plt.gca()
-#popt_E, pcov_E=curve_fit(E_function, x_axis, Mean_Es)
-#sqrt='$\sqrt{x}$'
-#a="{:.1E}".format(Decimal(popt_E[0]))
-#b="{:.1E}".format(Decimal(popt_E[1]))
-#equation=a+sqrt+'+'+b
-#plt.text(0.85,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
-#plt.plot(x_fit, E_function(x_fit,*popt_E), color='b')
-#plt.plot(x_axis,Mean_Es,'ro')
-#plt.xlabel('Time until Collision (years)')
-#plt.ylabel('Eccentricity')
-#plt.title('E vs. TuC')
+fSize=20
+Mean_As=[]
+for i in range(num_bins):
+    if A_Array[i]>0:
+        Mean_A=A_Array[i]/Counter[i]
+        Mean_As.append(Mean_A)
+def A_function(x, a, b):
+    return a*np.sqrt(x)+b
+plt.subplot(221)
+ax = plt.gca()
+popt_A, pcov_A=curve_fit(A_function, x_axis, Mean_As)
+sqrt='$\sqrt{x}$'
+a="{:.1E}".format(Decimal(popt_A[0]))
+b="{:.1E}".format(Decimal(popt_A[1]))
+equation=a+sqrt+'+'+b
+plt.text(0.15,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
+plt.plot(x_fit, A_function(x_fit,*popt_A), color='b')
+plt.plot(x_axis,Mean_As,'ro')
+plt.xlabel('Time until Collision (years)', fontsize=fSize)
+plt.ylabel('Semi-Major Axis (AU)', fontsize=fSize)
+plt.title('A Vs. TuC',fontsize=fSize)
 
-#Mean_INs=[]
-#for i in range(num_bins):
-#    if IN_Array[i]>0:
-#        Mean_IN=IN_Array[i]/Counter[i]
-#        Mean_INs.append(Mean_IN)
-#def IN_function(x, a, b):
-#    return a*np.sqrt(x)+b
-#plt.subplot(223)
-#ax = plt.gca()
-#popt_IN, pcov_IN=curve_fit(IN_function, x_axis, Mean_INs)
-#sqrt='$\sqrt{x}$'
-#a="{:.1E}".format(Decimal(popt_IN[0]))
-#b="{:.1E}".format(Decimal(popt_IN[1]))
-#equation=a+sqrt+'+'+b
-#plt.text(0.15,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
-#plt.plot(x_fit, IN_function(x_fit,*popt_IN), color='b')
-#plt.plot(x_axis,Mean_INs,'ro')
-#plt.xlabel('Time until Collision (years)')
-#plt.ylabel('Inclination (degrees)')
-#plt.title('I vs. TuC')
+Mean_Es=[]
+for i in range(num_bins):
+    if E_Array[i]>0:
+        Mean_E=E_Array[i]/Counter[i]
+        Mean_Es.append(Mean_E)
+def E_function(x, a, b):
+    return a*np.sqrt(x)+b
+plt.subplot(222)
+ax = plt.gca()
+popt_E, pcov_E=curve_fit(E_function, x_axis, Mean_Es)
+sqrt='$\sqrt{x}$'
+a="{:.1E}".format(Decimal(popt_E[0]))
+b="{:.1E}".format(Decimal(popt_E[1]))
+equation=a+sqrt+'+'+b
+plt.text(0.85,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
+plt.plot(x_fit, E_function(x_fit,*popt_E), color='b')
+plt.plot(x_axis,Mean_Es,'ro')
+plt.xlabel('Time until Collision (years)',fontsize=fSize)
+plt.ylabel('Eccentricity',fontsize=fSize)
+plt.title('E vs. TuC',fontsize=fSize)
 
-#Mean_ANGMOMs=[]
-#conv_ANGMOM=24*3600/1.496e+11
-#for i in range(num_bins):
-#    if N_Array[i]>0:
-#        Mean_ANGMOM=ANGMOM_Array[i]/Counter[i]
-#        Mean_ANGMOM*=conv_ANGMOM
-#        Mean_ANGMOMs.append(Mean_ANGMOM)
-#def ANGMOM_function(x, a, b):
-#    return a*np.sqrt(x)+b
-#plt.subplot(224)
-#ax = plt.gca()
-#popt_ANGMOM, pcov_ANGMOM=curve_fit(ANGMOM_function, x_axis, Mean_ANGMOMs)
-#sqrt='$\sqrt{x}$'
-#a="{:.1E}".format(Decimal(popt_IN[0]))
-#b="{:.1E}".format(Decimal(popt_IN[1]))
-#equation=a+sqrt+'+'+b
-#plt.text(0.15,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
-#plt.plot(x_fit, ANGMOM_function(x_fit,*popt_ANGMOM), color='b')
-#plt.plot(x_axis,Mean_ANGMOMs,'ro')
-#plt.xlabel('Time until Collision (years)')
-#plt.ylabel('Specific Angular Momentum (AU^2/day)')
-#plt.title('L vs. TuC')
-#plt.show()
+Mean_INs=[]
+for i in range(num_bins):
+    if IN_Array[i]>0:
+        Mean_IN=IN_Array[i]/Counter[i]
+        Mean_INs.append(Mean_IN)
+def IN_function(x, a, b):
+    return a*np.sqrt(x)+b
+plt.subplot(223)
+ax = plt.gca()
+popt_IN, pcov_IN=curve_fit(IN_function, x_axis, Mean_INs)
+sqrt='$\sqrt{x}$'
+a="{:.1E}".format(Decimal(popt_IN[0]))
+b="{:.1E}".format(Decimal(popt_IN[1]))
+equation=a+sqrt+'+'+b
+plt.text(0.15,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
+plt.plot(x_fit, IN_function(x_fit,*popt_IN), color='b')
+plt.plot(x_axis,Mean_INs,'ro')
+plt.xlabel('Time until Collision (years)',fontsize=fSize)
+plt.ylabel('Inclination (degrees)',fontsize=fSize)
+plt.title('I vs. TuC',fontsize=fSize)
+
+Mean_ANGMOMs=[]
+conv_ANGMOM=24*3600/1.496e+11
+for i in range(num_bins):
+    if N_Array[i]>0:
+        Mean_ANGMOM=ANGMOM_Array[i]/Counter[i]
+        Mean_ANGMOM*=conv_ANGMOM
+        Mean_ANGMOMs.append(Mean_ANGMOM)
+def ANGMOM_function(x, a, b):
+    return a*np.sqrt(x)+b
+plt.subplot(224)
+ax = plt.gca()
+popt_ANGMOM, pcov_ANGMOM=curve_fit(ANGMOM_function, x_axis, Mean_ANGMOMs)
+sqrt='$\sqrt{x}$'
+a="{:.1E}".format(Decimal(popt_IN[0]))
+b="{:.1E}".format(Decimal(popt_IN[1]))
+equation=a+sqrt+'+'+b
+plt.text(0.15,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
+plt.plot(x_fit, ANGMOM_function(x_fit,*popt_ANGMOM), color='b')
+plt.plot(x_axis,Mean_ANGMOMs,'ro')
+plt.xlabel('Time until Collision (years)',fontsize=fSize)
+plt.ylabel('Specific Angular Momentum (AU^2/day)',fontsize=fSize)
+plt.title('L vs. TuC',fontsize=fSize)
+plt.show()
 
 #Mean_Ns=[]
 #conv_N=24*3600

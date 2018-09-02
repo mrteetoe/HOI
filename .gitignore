@@ -1,3 +1,8 @@
-Data/*
+Data/Object_Positions/*
+Data/observed/*
+Data/simulated/*
+Data/pho/*
+Data/oe_matrices/*
+Data/Hazard_Matrices/*
 Asteroid_Simulator/amuse_binary/*
 *.pyc

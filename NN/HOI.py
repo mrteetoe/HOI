@@ -8,21 +8,20 @@ obs_label=0.1
 sim_label=0.9
 pho_label=0.8
 filter_width=10
-output_channels=5
+output_channels=10
 stride_length=2
 filter_width=10
-output_channels=5
-stride_length=2
-keep_rate=0.8
-network_layout=[250, 150, 50, 35, 100, 50, 50, 40, 1]
-num_strides=(network_layout[2]/5)/stride_length
-weights_token='Aug28_11'
+keep_rate=0.8NO
+network_layout=[250, 0, 120, 60, 30, 15, 1]
+num_strides=(network_layout[0]/5)/stride_length
+network_layout[1]=num_strides*output_channels
+weights_token='Sept2_0'
 
 #Loads the three datasets
 print('Loading the data this could take a minute...')
-OO=np.load('Data/oo_matrixN.npy')
-SO=np.load('Data/so_matrixN.npy')
-PHO=np.load('Data/pho_matrixN.npy')
+OO=np.load('Data/oe_matrices/oo_matrixN.npy')
+SO=np.load('Data/oe_matrices/so_matrix_OldSept.npy')
+PHO=np.load('Data/oe_matrices/pho_matrixN.npy')
 print('Done!')
 
 ##Limits the amount of observed and simulated
