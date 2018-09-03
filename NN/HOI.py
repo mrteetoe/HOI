@@ -11,16 +11,16 @@ filter_width=10
 output_channels=10
 stride_length=2
 filter_width=10
-keep_rate=0.8NO
+#keep_rate=0.8NO
 network_layout=[250, 0, 120, 60, 30, 15, 1]
 num_strides=(network_layout[0]/5)/stride_length
 network_layout[1]=num_strides*output_channels
-weights_token='Sept2_0'
+weights_token='Sept3_1'
 
 #Loads the three datasets
 print('Loading the data this could take a minute...')
 OO=np.load('Data/oe_matrices/oo_matrixN.npy')
-SO=np.load('Data/oe_matrices/so_matrix_OldSept.npy')
+SO=np.load('Data/oe_matrices/so_MatrixSept.npy')
 PHO=np.load('Data/oe_matrices/pho_matrixN.npy')
 print('Done!')
 

@@ -6,12 +6,6 @@ import datetime
 import sys
 import time
 
-def shuffle_in_unison(a, b):
-    rng_state = np.random.get_state()
-    np.random.shuffle(a)
-    np.random.set_state(rng_state)
-    np.random.shuffle(b)
-
 #For setting printing options
 np.set_printoptions(linewidth=400, threshold=int(1e4), edgeitems=6)
 
@@ -21,16 +15,16 @@ sim_train_perc = 0.9
 obs_label=0.1
 sim_label=0.9
 pho_label=0.8
-total_OO=1e5
+total_OO=5e4
 total_SO=1e5
   
 filter_width=10
 output_channels=10
 stride_length=2
-keep_rate=0.8
-num_of_epochs=9
+keep_rate=1.0
+num_of_epochs=1
 learning_rate=0.001
-batch_size=10
+batch_size=100
 network_layout=[250, 0, 120, 60, 30, 15, 1]
 num_strides=(network_layout[0]/5)/stride_length
 network_layout[1]=num_strides*output_channels
@@ -58,32 +52,32 @@ weights_token=str(sys.argv[2])
 #Loads the three datasets
 print('Loading the data this could take a minute...')
 OO=np.load('Data/oe_matrices/oo_matrixN.npy')
-SO=np.load('Data/oe_matrices/so_matrix_OldSept.npy')
+SO=np.load('Data/oe_matrices/so_MatrixSept.npy')
 PHO=np.load('Data/oe_matrices/pho_matrixN.npy')
 print('Done!')
 
 #num_PHO,_=PHO.shape
 #for i in range(num_PHO):
 #    if int(PHO[i,-1])==101955:
-#        print(PHO[i,:5])
+#        print(PHO[i,5:10])
 
 #Throws some of the data out (randomly)
 np.random.shuffle(OO)
 np.random.shuffle(SO)
-OO=OO[:int(total_OO)]
-SO=SO[:int(total_SO)]
+OOc=OO[:int(total_OO)]
+SOc=SO[:int(total_SO)]
 
 #Creates the training and test set
 #SO and OO are chosen randomly
 #PHO are always in the test set
-num_OO,_=OO.shape
-num_SO,_=SO.shape
+num_OO,_=OOc.shape
+num_SO,_=SOc.shape
 num_train_OO=int(num_OO*obs_train_perc)
 num_train_SO=int(num_SO*sim_train_perc)
 num_test_OO=num_OO-num_train_OO
 num_test_SO=num_SO-num_train_SO
-train_set=np.concatenate((OO[:num_train_OO],SO[:num_train_SO]),axis=0)
-test_set=np.concatenate((OO[num_train_OO:],SO[num_train_SO:]),axis=0)
+train_set=np.concatenate((OOc[:num_train_OO],SOc[:num_train_SO]),axis=0)
+test_set=np.concatenate((OOc[num_train_OO:],SOc[num_train_SO:]),axis=0)
 test_set=np.concatenate((test_set,PHO),axis=0)
 num_train,_=train_set.shape
 num_test,_=test_set.shape
@@ -127,7 +121,7 @@ conv_train = funcs.conv_1D(x, weights, biases, num_strides, stride_length, batch
 conv_test = funcs.conv_1D(x, weights, biases, num_strides, stride_length, num_test, keep_prob, network_layout)
 
 #Defines the cross entropy function and its optimizer
-cross_entropy = tf.nn.sigmoid_cross_entropy_with_logits(labels=y_,logits=conv_train)
+cross_entropy = tf.nn.weighted_cross_entropy_with_logits(targets=y_,logits=conv_train,pos_weight=0.4)
 train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
 
 #Starts the interactive session
@@ -152,8 +146,19 @@ learning_rate_counter=0
 loss_counter=0
 
 print('\nTraining commencing...\n')
-#try:
 for epoch in range(num_of_epochs):
+    np.random.shuffle(OO)
+    np.random.shuffle(SO)
+    OOc=OO[:int(total_OO)]
+    SOc=SO[:int(total_SO)]
+    train_set=np.concatenate((OOc[:num_train_OO],SOc[:num_train_SO]),axis=0)
+    train_labels=np.zeros(num_train)
+    for i in range(num_train):
+        if i<num_train_OO:
+            train_labels[i]=obs_label
+        elif i>=num_train_OO:
+            train_labels[i]=sim_label
+    train_labels=train_labels.reshape((num_train,1))
     funcs.shuffle_in_unison(train_set, train_labels)
     total_loss=0
     total_entries=0
@@ -174,20 +179,8 @@ for epoch in range(num_of_epochs):
             last_loss=1
             loss_counter+=1
         avg_loss=total_loss/total_entries
-
         print('The average loss, per training vector, is %s for the %s epoch'%(avg_loss, epoch))
-#        if avg_loss/last_loss>1.0001:
-#            learning_rate=learning_rate*0.5
-#            train_step = tf.train.AdamOptimizer(learning_rate).minimize(cross_entropy)
-#            learning_rate_counter=0
-#            epoch_counter=0
-#            print('Learning rate decreased to %s'%(learning_rate))
-#    wait=10
-#    guesses, answers=sess.run(variables, feed_dict={x:test_set[:,:-1], y_:test_labels, keep_prob:1.0})
-#    print('Waiting %s seconds...'%(wait))
-#    time.sleep(wait)
-                          
-#except KeyboardInterrupt:
+                         
 #Performs some evaluations       		
 eval_matrix=np.zeros((guesses.size,3))
 eval_matrix[:,0]=guesses.reshape(guesses.size)

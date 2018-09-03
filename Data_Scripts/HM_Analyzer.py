@@ -14,17 +14,20 @@ np.set_printoptions(linewidth=400, threshold=int(1e4), edgeitems=6)
 #Aug28_3 best so far
 #Aug28_7 best so far
 #Sept2_0 is good
-fil_hazard_matrix='Data/Hazard_Matrices/Sept2_0.csv'
+fil_hazard_matrix='Data/Hazard_Matrices/Sept3_1.csv'
 hazard_matrix=np.genfromtxt(fil_hazard_matrix,delimiter=',')
 num_objects,_=hazard_matrix.shape
 
 observed_label=0.1
 simulated_label=0.9
 pho_label=0.8
-threshold=0.99
+threshold=0.99997
 Sentry_Names=[410777,101955, 29075, 648002, 654427, 99942, 645733, 709909, 608553, 834844]
 Sentry_Impact_Chance=[0.0016, 0.00037, 0.00012, 4.7E-05, 3.5E-05, 8.9E-06, 7.7E-06, 6.5E-06, 6.1E-06, 5.8E-06]
 
+#Output files
+fil_unidentified_objects='Data/unidentified_objects.txt'
+fil_identified_objects='Data/identified_objects.txt'
 
 #Groups objects according to label
 observed_set=[]
@@ -57,31 +60,74 @@ num_haz_obs=0; num_haz_sim=0; num_haz_pho=0
 for i in range(num_observed):
     if observed_set[i,2]>=threshold:
         num_haz_obs+=1
-        ident_obj.append(observed_set[i,0])
+        ident_obj.append(observed_set[i,:])
     else:
-        unident_obj.append(observed_set[i,0])
+        unident_obj.append(observed_set[i,:])
 for i in range(num_simulated):
     if simulated_set[i,2]>=threshold:
         num_haz_sim+=1 
 for i in range(num_pho):
     if pho_set[i,2]>=threshold:
         num_haz_pho+=1  
-        ident_obj.append(pho_set[i,0])
+        ident_obj.append(pho_set[i,:])
     else:
-        unident_obj.append(pho_set[i,0])      
+        unident_obj.append(pho_set[i,:])      
 print('\nTotal objects: %s'%(num_objects))
 print('Out of the %s observed objects, %s were identified as hazardous (%.2f%%).'%(num_observed, num_haz_obs, float(num_haz_obs)/float(num_observed)*100.))
 print('Out of the %s simulated objects, %s were identified as hazardous (%.2f%%).'%(num_simulated, num_haz_sim, float(num_haz_sim)/float(num_simulated)*100.))
 print('Out of the %s PHOs, %s were identified as hazardous (%.2f%%).\n'%(num_pho, num_haz_pho, float(num_haz_pho)/float(num_pho)*100.))
 
-#Prints object to a file
-fil_identified_objects='Data/unidentified_objects.txt'
+#Prints hazardous and benign objects to file
 identified_objects=open(fil_identified_objects,'w')
-random.shuffle(unident_obj)
-for obj in unident_obj:
-    identified_objects.write(str(int(obj))+'\n')
+for obj in ident_obj:
+    name=obj[0]
+    identified_objects.write(str(int(name))+'\n')
 identified_objects.close()
-print('Printed objects list to %s.'%(fil_identified_objects))
+print('Printed hazardous list to %s.'%(fil_identified_objects))
+unidentified_objects=open(fil_unidentified_objects,'w')
+for obj in unident_obj:
+    name=obj[0]
+    unidentified_objects.write(str(int(name))+'\n')
+unidentified_objects.close()
+print('Printed benign list to %s.'%(fil_unidentified_objects))
+
+num_plot=700
+ylim=5
+y=[]; x=[]
+plt.subplot(211)
+for i,obj in enumerate(ident_obj):
+    A=obj[3]
+    E=obj[4]
+    x.append(E)
+    y.append(A)
+    if i==num_plot:
+        break
+plt.plot(x,y,'r+')
+plt.hlines(0.983,0,1,linestyles='dashed',colors='b')
+plt.hlines(1.017,0,1,linestyles='dashed',colors='b')
+plt.xlabel('Eccentricity')
+plt.ylabel('Semi-Major Axis (AU)')
+plt.ylim([0,ylim])
+plt.xlim([0,1])
+plt.title('Semi-Major Axis Vs. Eccentricity for Identified Objects')
+y=[]; x=[]
+plt.subplot(212)
+for i,obj in enumerate(unident_obj):
+    A=obj[3]
+    E=obj[4]
+    x.append(E)
+    y.append(A)
+    if i==num_plot:
+        break
+plt.plot(x,y,'r+')
+plt.hlines(0.983,0,1,linestyles='dashed',colors='b')
+plt.hlines(1.017,0,1,linestyles='dashed',colors='b')
+plt.xlabel('Eccentricity')
+plt.ylabel('Semi-Major Axis (AU)')
+plt.ylim([0,ylim])
+plt.xlim([0,1])
+plt.title('Semi-Major Axis Vs. Eccentricity for Unidentified Objects')
+plt.show()
 
 #Finds the OE mean for each class
 observed_OE_mean=np.mean(observed_set[:,3:8],axis=0)
@@ -176,7 +222,20 @@ num_fit_points=1000
 x_fit=np.linspace(min_epoch,max_epoch,num_fit_points)
 plt.figure(1)
 
-fSize=20
+Left  = 0.04  # the left side of the subplots of the figure
+Right = 0.99    # the right side of the subplots of the figure
+Bottom = 0.06   # the bottom of the subplots of the figure
+Top = 0.96      # the top of the subplots of the figure
+Wspace = 0.11   # the amount of width reserved for space between subplots,
+               # expressed as a fraction of the average axis width
+Hspace = 0.27   # the amount of height reserved for space between subplots,
+               # expressed as a fraction of the average axis height
+plt.subplots_adjust(left=Left, bottom=Bottom, right=Right, top=Top,
+                wspace=Wspace, hspace=Hspace)
+fSize=18
+fTitle=20
+tickSize=14
+eqSize=16
 Mean_As=[]
 for i in range(num_bins):
     if A_Array[i]>0:
@@ -191,12 +250,14 @@ sqrt='$\sqrt{x}$'
 a="{:.1E}".format(Decimal(popt_A[0]))
 b="{:.1E}".format(Decimal(popt_A[1]))
 equation=a+sqrt+'+'+b
-plt.text(0.15,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
+plt.text(0.15,0.85,equation, fontsize=eqSize, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
 plt.plot(x_fit, A_function(x_fit,*popt_A), color='b')
 plt.plot(x_axis,Mean_As,'ro')
 plt.xlabel('Time until Collision (years)', fontsize=fSize)
 plt.ylabel('Semi-Major Axis (AU)', fontsize=fSize)
-plt.title('A Vs. TuC',fontsize=fSize)
+plt.xticks(fontsize=tickSize)
+plt.yticks(fontsize=tickSize)
+plt.title('A Vs. TuC',fontsize=fTitle)
 
 Mean_Es=[]
 for i in range(num_bins):
@@ -212,12 +273,14 @@ sqrt='$\sqrt{x}$'
 a="{:.1E}".format(Decimal(popt_E[0]))
 b="{:.1E}".format(Decimal(popt_E[1]))
 equation=a+sqrt+'+'+b
-plt.text(0.85,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
+plt.text(0.85,0.85,equation, fontsize=eqSize, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
 plt.plot(x_fit, E_function(x_fit,*popt_E), color='b')
 plt.plot(x_axis,Mean_Es,'ro')
 plt.xlabel('Time until Collision (years)',fontsize=fSize)
 plt.ylabel('Eccentricity',fontsize=fSize)
-plt.title('E vs. TuC',fontsize=fSize)
+plt.xticks(fontsize=tickSize)
+plt.yticks(fontsize=tickSize)
+plt.title('E vs. TuC',fontsize=fTitle)
 
 Mean_INs=[]
 for i in range(num_bins):
@@ -233,12 +296,14 @@ sqrt='$\sqrt{x}$'
 a="{:.1E}".format(Decimal(popt_IN[0]))
 b="{:.1E}".format(Decimal(popt_IN[1]))
 equation=a+sqrt+'+'+b
-plt.text(0.15,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
+plt.text(0.15,0.85,equation, fontsize=eqSize, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
 plt.plot(x_fit, IN_function(x_fit,*popt_IN), color='b')
 plt.plot(x_axis,Mean_INs,'ro')
 plt.xlabel('Time until Collision (years)',fontsize=fSize)
 plt.ylabel('Inclination (degrees)',fontsize=fSize)
-plt.title('I vs. TuC',fontsize=fSize)
+plt.xticks(fontsize=tickSize)
+plt.yticks(fontsize=tickSize)
+plt.title('I vs. TuC',fontsize=fTitle)
 
 Mean_ANGMOMs=[]
 conv_ANGMOM=24*3600/1.496e+11
@@ -256,12 +321,14 @@ sqrt='$\sqrt{x}$'
 a="{:.1E}".format(Decimal(popt_IN[0]))
 b="{:.1E}".format(Decimal(popt_IN[1]))
 equation=a+sqrt+'+'+b
-plt.text(0.15,0.85,equation, fontsize=12, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
+plt.text(0.15,0.85,equation, fontsize=eqSize, horizontalalignment='center', verticalalignment='center',transform=ax.transAxes)
 plt.plot(x_fit, ANGMOM_function(x_fit,*popt_ANGMOM), color='b')
 plt.plot(x_axis,Mean_ANGMOMs,'ro')
 plt.xlabel('Time until Collision (years)',fontsize=fSize)
-plt.ylabel('Specific Angular Momentum (AU^2/day)',fontsize=fSize)
-plt.title('L vs. TuC',fontsize=fSize)
+plt.ylabel('Spec. Ang. Momentum (AU^2/day)',fontsize=fSize)
+plt.xticks(fontsize=tickSize)
+plt.yticks(fontsize=tickSize)
+plt.title('L vs. TuC',fontsize=fTitle)
 plt.show()
 
 #Mean_Ns=[]

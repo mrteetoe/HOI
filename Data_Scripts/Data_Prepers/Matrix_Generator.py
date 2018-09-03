@@ -28,6 +28,7 @@ for object_num in range(1,max_num+1):
             oo_num=oo[0,0]
             if int(oo_num)==101955:
                 oo[1:,0]-=0.05
+                oo[1:,1]+=0.03
             oo_vector=np.zeros(num_origRows*5+1)
             oo_vector[:-1]=oo[1:].flatten()
             oo_vector[-1]=oo_num
@@ -43,7 +44,7 @@ print('%s observed objects were not found.'%(unfound_oo))
 #Converts to matrix and saves as numpy array
 oo_matrix=np.array(oo_list)
 np.save(fil_pho_matrix, oo_matrix)
-print('Observed matrix saved to %s'%(fil_observed_matrix))
+print('Observed matrix saved to %s'%(fil_pho_matrix))
 
 ##Loads simulated and saves to list
 #dir_simulated='Data/simulated_new/'

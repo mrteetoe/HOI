@@ -40,8 +40,11 @@ def eval_function(eval_M, obs_label, sim_label, pho_label, OEs, weight_token):
     num_pho=len(PHO_ratings)
     print('\nTotal objects: %s'%(num_objects))
     print('Out of the %s observed objects, %s were identified as hazardous (%.2f%%).'%(num_observed, num_haz_obs, float(num_haz_obs)/float(num_observed)*100.))
+    print(sum(observed_ratings)/len(observed_ratings))
     print('Out of the %s simulated objects, %s were identified as hazardous (%.2f%%).'%(num_simulated, num_haz_sim, float(num_haz_sim)/float(num_simulated)*100.))
+    print(sum(simulated_ratings)/len(simulated_ratings))
     print('Out of the %s PHOs, %s were identified as hazardous (%.2f%%).\n'%(num_pho, num_haz_pho, float(num_haz_pho)/float(num_pho)*100.))
+    print(sum(PHO_ratings)/len(PHO_ratings))
 
     print('Creating hazard matrix...')
     hazard_matrix=np.zeros((num_objects, 13))
